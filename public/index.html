@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RandomTalk</title>
+<style>
+body{font-family:system-ui;margin:0;background:#f5f7fb;color:#172033}
+main{max-width:720px;margin:30px auto;padding:15px}
+.box{background:white;border-radius:18px;padding:18px;box-shadow:0 8px 30px #0001}
+#chat{height:55vh;overflow:auto;border:1px solid #eee;border-radius:14px;padding:12px}
+.m{padding:9px 12px;margin:7px 0;border-radius:12px;max-width:80%;background:#eef2ff}
+.mine{margin-left:auto;background:#111827;color:white}
+.row{display:flex;gap:8px;margin-top:10px}
+.row input{flex:1;padding:12px;border:1px solid #ddd;border-radius:10px}
+button{padding:11px 14px;border:0;border-radius:10px;font-weight:700}
+.primary{background:#2563eb;color:#fff}
+.dark{background:#111827;color:#fff}
+.danger{background:#fee2e2;color:#991b1b}
+small{color:#64748b}
+</style>
+</head>
+<body>
+<main>
+<div class="box">
+<h2>RandomTalk</h2>
+<small id="status">Connecting...</small>
+
+<div id="chat"></div>
+
+<div class="row">
+<input id="msg" maxlength="300" placeholder="Message..." disabled>
+<button class="primary" id="send" disabled>Send</button>
+</div>
+
+<div class="row">
+<button class="dark" id="next">Find / Next</button>
+<button class="danger" id="report">Report</button>
+</div>
+
+<p>
+<small>
+Safety: don't share passwords, financial information,
+exact location, or private images.
+</small>
+</p>
+</div>
+</main>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+const socket=io();
+
+const chat=document.querySelector("#chat");
+const input=document.querySelector("#msg");
+const status=document.querySelector("#status");
+const send=document.querySelector("#send");
+
+function add(text,mine=false){
+ const d=document.createElement("div");
+ d.className="m"+(mine?" mine":"");
+ d.textContent=text;
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
+}
+
+function waiting(){
+ status.textContent="Searching for a chat...";
+ input.disabled=true;
+ send.disabled=true;
+}
+
+socket.on("connect",()=>{
+ status.textContent="Connected. Press Find / Next.";
+});
+
+socket.on("waiting",waiting);
+
+socket.on("matched",x=>{
+ status.textContent=x.message;
+ input.disabled=false;
+ send.disabled=false;
+ chat.innerHTML="";
+});
+
+socket.on("message",text=>{
+ add(text);
+});
+
+socket.on("partner-left",x=>{
+ status.textContent=x.message;
+ input.disabled=true;
+ send.disabled=true;
+});
+
+socket.on("report-sent",()=>{
+ status.textContent="Report submitted. Chat ended.";
+ input.disabled=true;
+ send.disabled=true;
+});
+
+function sendMsg(){
+ const text=input.value.trim();
+ if(!text)return;
+
+ add(text,true);
+ socket.emit("message",text);
+ input.value="";
+}
+
+send.onclick=sendMsg;
+
+input.onkeydown=e=>{
+ if(e.key==="Enter")sendMsg();
+};
+
+document.querySelector("#next").onclick=()=>{
+ chat.innerHTML="";
+ socket.emit("next");
+};
+
+document.querySelector("#report").onclick=()=>{
+ socket.emit("report","User reported from chat");
+};
+</script>
+</body>
+</html>
