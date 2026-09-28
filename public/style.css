@@ -1,0 +1,122 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  color: #222;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.header h1 {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.header p {
+  color: #666;
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.primary-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+}
+
+.primary-btn:hover {
+  background: #1d4ed8;
+}
+
+.secondary-btn {
+  background: #e5e7eb;
+  color: #222;
+}
+
+input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.chat-box {
+  height: 400px;
+  overflow-y: auto;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.message {
+  padding: 10px 14px;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  flex: 1;
+}
+
+.status {
+  text-align: center;
+  margin: 15px 0;
+  color: #666;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 12px;
+  }
+
+  .header h1 {
+    font-size: 26px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .chat-box {
+    height: 55vh;
+  }
+}
