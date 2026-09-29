@@ -144,7 +144,7 @@
     /* Status Badge on Video */
     .video-status {
       position: absolute;
-      bottom: 24px;
+      bottom: 110px;
       left: 18px;
       background: rgba(0, 0, 0, 0.65);
       color: #ffffff;
@@ -155,11 +155,130 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
       z-index: 25;
     }
+
+    /* Call Cut Button Area (Bottom Center) */
+    .call-controls {
+      position: absolute;
+      bottom: 35px; /* Neeche screen se thoda sa upar */
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-cut {
+      background: #ef4444;
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    .btn-cut:active {
+      transform: scale(0.94);
+      background: #dc2626;
+    }
+
+    .btn-cut svg {
+      width: 18px;
+      height: 18px;
+      fill: #ffffff;
+      transform: rotate(135deg);
+    }
+
+    /* Thank You Screen */
+    .thankyou-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #0b0f19;
+      display: none; /* Initially Hidden */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
+      z-index: 100;
+    }
+
+    .thankyou-card {
+      background: #1e293b;
+      padding: 36px 24px;
+      border-radius: 24px;
+      max-width: 360px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .heart-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .heart-icon svg {
+      width: 32px;
+      height: 32px;
+      fill: #38bdf8;
+    }
+
+    .thankyou-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .thankyou-title span {
+      color: #38bdf8;
+    }
+
+    .thankyou-desc {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .btn-reconnect {
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #ffffff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    }
   </style>
 </head>
 <body>
 
-  <div class="video-call-container">
+  <!-- Main Video Container -->
+  <div class="video-call-container" id="videoContainer">
     <!-- Top Header -->
     <div class="brand-header">
       <div class="logo-box">
@@ -184,6 +303,30 @@
 
     <!-- Connection Status Badge -->
     <div class="video-status" id="videoStatus">Connecting...</div>
+
+    <!-- Call Cut Button (Bottom Center) -->
+    <div class="call-controls">
+      <button class="btn-cut" id="callCutBtn">
+        <svg viewBox="0 0 24 24">
+          <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
+        </svg>
+        Call Cut
+      </button>
+    </div>
+  </div>
+
+  <!-- Thank You Screen -->
+  <div class="thankyou-screen" id="thankyouScreen">
+    <div class="thankyou-card">
+      <div class="heart-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </div>
+      <div class="thankyou-title">Thank you for using <br><span>ishanvi video chat</span></div>
+      <div class="thankyou-desc">Call disconnected successfully. We hope you enjoyed your conversation!</div>
+      <button class="btn-reconnect" onclick="location.reload()">Start New Call</button>
+    </div>
   </div>
 
   <script>
@@ -206,6 +349,9 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
     const videoStatus = document.getElementById("videoStatus");
+    const callCutBtn = document.getElementById("callCutBtn");
+    const videoContainer = document.getElementById("videoContainer");
+    const thankyouScreen = document.getElementById("thankyouScreen");
 
     let localStream = null;
     let peer = null;
@@ -291,6 +437,22 @@
       videoStatus.innerText = "Connecting...";
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
+
+    // Call Cut Event
+    callCutBtn.addEventListener("click", () => {
+      // 1. Camera & Mic track close
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+      }
+      // 2. Peer & Call disconnect
+      resetSession();
+      if (peer) {
+        peer.destroy();
+      }
+      // 3. Switch to Thank You screen
+      videoContainer.style.display = "none";
+      thankyouScreen.style.display = "flex";
+    });
 
     window.addEventListener("beforeunload", () => {
       resetSession();
