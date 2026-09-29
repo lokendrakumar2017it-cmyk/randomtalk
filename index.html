@@ -38,7 +38,7 @@
       overflow: hidden;
     }
 
-    /* Radar Pulse Animation (Searching Screen) */
+    /* Radar Pulse Animation */
     .radar-box {
       position: absolute;
       display: flex;
@@ -100,7 +100,6 @@
       font-weight: 600;
       color: #94a3b8;
       letter-spacing: 0.5px;
-      text-transform: uppercase;
       animation: textPulse 1.8s ease-in-out infinite;
     }
 
@@ -131,7 +130,7 @@
       opacity: 1;
     }
 
-    /* 2. Floating User Video Frame */
+    /* 2. Floating User Video */
     #localVideo {
       position: absolute;
       top: 80px;
@@ -148,7 +147,7 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Glassmorphism Brand Header */
+    /* Brand Header */
     .brand-header {
       position: absolute;
       top: 12px;
@@ -232,39 +231,7 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* Dynamic Status Pill */
-    .video-status {
-      position: absolute;
-      bottom: 105px;
-      left: 18px;
-      background: rgba(15, 23, 42, 0.7);
-      color: #e2e8f0;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 20px;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-      z-index: 25;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.3s ease;
-    }
-
-    .video-status.connected {
-      color: #38bdf8;
-      border-color: rgba(56, 189, 248, 0.4);
-    }
-
-    .video-status.warning {
-      background: rgba(234, 179, 8, 0.85);
-      color: #0b0f19;
-      font-weight: 700;
-    }
-
-    /* Futuristic Floating Dock Controls */
+    /* Floating Dock Controls */
     .call-controls {
       position: absolute;
       bottom: 28px;
@@ -450,7 +417,7 @@
       </div>
     </div>
 
-    <!-- Radar Searching Pulse -->
+    <!-- Radar Pulse: Text updated to "Waiting for call pickup" -->
     <div class="radar-box" id="radarBox">
       <div class="radar-circle">
         <div class="radar-wave"></div>
@@ -458,19 +425,16 @@
         <div class="radar-wave"></div>
         <div class="radar-center-icon">
           <svg viewBox="0 0 24 24">
-            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
           </svg>
         </div>
       </div>
-      <div class="radar-text">Finding Stranger...</div>
+      <div class="radar-text">Waiting for call pickup</div>
     </div>
 
     <!-- Video Feeds -->
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
-
-    <!-- Dynamic Status Badge -->
-    <div class="video-status" id="videoStatus">Connecting...</div>
 
     <!-- Modern Floating Controls -->
     <div class="call-controls">
@@ -534,7 +498,6 @@
 
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
-    const videoStatus = document.getElementById("videoStatus");
     const radarBox = document.getElementById("radarBox");
     const callCutBtn = document.getElementById("callCutBtn");
     const micBtn = document.getElementById("micBtn");
@@ -552,16 +515,6 @@
     let isAudioMuted = false;
     let isVideoStopped = false;
     let currentFacingMode = "user";
-
-    function updateStatus(text, type = "normal") {
-      videoStatus.innerText = text;
-      videoStatus.className = "video-status";
-      if (type === "warning") {
-        videoStatus.classList.add("warning");
-      } else if (type === "connected") {
-        videoStatus.classList.add("connected");
-      }
-    }
 
     async function startCamera(facingMode = "user") {
       try {
@@ -595,11 +548,10 @@
         }
 
         if (!peer) {
-          updateStatus("Connecting...");
           initPeer();
         }
       } catch (err) {
-        updateStatus("Camera Permission Required", "warning");
+        console.error("Camera permission denied", err);
       }
     }
 
@@ -626,7 +578,6 @@
       });
 
       peer.on('disconnected', () => {
-        updateStatus("Reconnecting...", "warning");
         if (!peer.destroyed) {
           peer.reconnect();
         }
@@ -634,7 +585,6 @@
     }
 
     function findMatch() {
-      updateStatus("Searching for partner...");
       radarBox.style.opacity = "1";
       remoteVideo.classList.remove("active");
 
@@ -654,7 +604,6 @@
     }
 
     function connectToStranger(strangerId) {
-      updateStatus("Connecting...");
       const call = peer.call(strangerId, localStream);
       setupCallHandlers(call);
     }
@@ -666,7 +615,6 @@
         remoteVideo.srcObject = stream;
         remoteVideo.classList.add("active");
         radarBox.style.opacity = "0";
-        updateStatus("Connected", "connected");
         clearTimeout(disconnectGraceTimer);
       });
 
@@ -675,7 +623,6 @@
         pc.oniceconnectionstatechange = () => {
           const state = pc.iceConnectionState;
           if (state === "disconnected") {
-            updateStatus("Poor Network: Reconnecting...", "warning");
             if (pc.restartIce) pc.restartIce();
             clearTimeout(disconnectGraceTimer);
             disconnectGraceTimer = setTimeout(() => {
@@ -685,9 +632,7 @@
             }, 12000);
           } else if (state === "connected" || state === "completed") {
             clearTimeout(disconnectGraceTimer);
-            updateStatus("Connected", "connected");
           } else if (state === "failed") {
-            updateStatus("Connection Lost", "warning");
             handleDisconnect();
           }
         };
@@ -709,16 +654,14 @@
       remoteVideo.srcObject = null;
       remoteVideo.classList.remove("active");
       radarBox.style.opacity = "1";
-      updateStatus("Searching for partner...");
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
 
     window.addEventListener('offline', () => {
-      updateStatus("No Internet Connection", "warning");
+      console.warn("Internet offline");
     });
 
     window.addEventListener('online', () => {
-      updateStatus("Internet Restored. Resuming...", "connected");
       if (peer && peer.disconnected) peer.reconnect();
       if (currentCall && currentCall.peerConnection && currentCall.peerConnection.restartIce) {
         currentCall.peerConnection.restartIce();
