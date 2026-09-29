@@ -36,7 +36,7 @@
       overflow: hidden;
     }
 
-    /* 1. Remote Video Fullscreen (Stranger ka Video) */
+    /* 1. Fullscreen Stranger Video */
     #remoteVideo {
       position: absolute;
       top: 0;
@@ -48,7 +48,7 @@
       z-index: 1;
     }
 
-    /* 2. Local Video Floating Box (User ka Apna Video - Pehle se thoda chhota) */
+    /* 2. Floating User Video */
     #localVideo {
       position: absolute;
       top: 75px;
@@ -61,7 +61,8 @@
       border: 2px solid rgba(56, 189, 248, 0.9);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
       z-index: 15;
-      transform: scaleX(-1); /* Mirror view */
+      transform: scaleX(-1);
+      transition: opacity 0.2s ease;
     }
 
     /* Top Brand Header */
@@ -142,7 +143,7 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* Status Badge on Video */
+    /* Connection Status */
     .video-status {
       position: absolute;
       bottom: 110px;
@@ -157,42 +158,76 @@
       z-index: 25;
     }
 
-    /* Call Cut Button (Bottom Center) */
+    /* Bottom Control Bar */
     .call-controls {
       position: absolute;
-      bottom: 35px;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
       display: flex;
-      flex-direction: column;
       align-items: center;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.75);
+      padding: 8px 14px;
+      border-radius: 40px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
-    .btn-cut {
-      background: #ef4444;
+    .control-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
       color: #ffffff;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-weight: 700;
-      font-size: 14px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
       transition: all 0.2s ease;
     }
 
+    .control-btn:active {
+      transform: scale(0.92);
+    }
+
+    .control-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: #ffffff;
+    }
+
+    /* Active / Mute state highlight */
+    .control-btn.off {
+      background: #ef4444;
+    }
+
+    /* End Call Button */
+    .btn-cut {
+      background: #ef4444;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: none;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+      transition: transform 0.2s ease;
+    }
+
     .btn-cut:active {
-      transform: scale(0.94);
-      background: #dc2626;
+      transform: scale(0.92);
     }
 
     .btn-cut svg {
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       fill: #ffffff;
       transform: rotate(135deg);
     }
@@ -295,22 +330,44 @@
       </div>
     </div>
 
-    <!-- 1. Fullscreen Stranger Video (Background) -->
+    <!-- 1. Fullscreen Stranger Video -->
     <video id="remoteVideo" autoplay playsinline></video>
 
-    <!-- 2. Floating Compact User Video (Corner Frame) -->
+    <!-- 2. Floating User Video -->
     <video id="localVideo" autoplay playsinline muted></video>
 
     <!-- Status Badge -->
     <div class="video-status" id="videoStatus">Connecting...</div>
 
-    <!-- Call Cut Button (Bottom Center) -->
+    <!-- Floating Action Controls (Mic, Cam, Flip, Call Cut) -->
     <div class="call-controls">
-      <button class="btn-cut" id="callCutBtn">
+      <!-- Mic Button -->
+      <button class="control-btn" id="micBtn" title="Mute/Unmute Mic">
+        <svg id="micIcon" viewBox="0 0 24 24">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+      </button>
+
+      <!-- Camera On/Off Button -->
+      <button class="control-btn" id="camBtn" title="Camera On/Off">
+        <svg id="camIcon" viewBox="0 0 24 24">
+          <path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z"/>
+        </svg>
+      </button>
+
+      <!-- Flip Camera Button -->
+      <button class="control-btn" id="flipBtn" title="Switch Camera">
+        <svg viewBox="0 0 24 24">
+          <path d="M9.01 14H2v2h7.01v3L13 15l-3.99-4v3zm5.98-1v-3H22V8h-7.01V5L11 9l3.99 4z"/>
+        </svg>
+      </button>
+
+      <!-- Call Cut Button -->
+      <button class="btn-cut" id="callCutBtn" title="End Call">
         <svg viewBox="0 0 24 24">
           <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
         </svg>
-        Call Cut
       </button>
     </div>
   </div>
@@ -350,6 +407,9 @@
     const remoteVideo = document.getElementById("remoteVideo");
     const videoStatus = document.getElementById("videoStatus");
     const callCutBtn = document.getElementById("callCutBtn");
+    const micBtn = document.getElementById("micBtn");
+    const camBtn = document.getElementById("camBtn");
+    const flipBtn = document.getElementById("flipBtn");
     const videoContainer = document.getElementById("videoContainer");
     const thankyouScreen = document.getElementById("thankyouScreen");
 
@@ -358,12 +418,48 @@
     let myPeerId = null;
     let currentCall = null;
 
-    async function startCamera() {
+    // Feature status trackers
+    let isAudioMuted = false;
+    let isVideoStopped = false;
+    let currentFacingMode = "user"; // "user" (front) or "environment" (back)
+
+    async function startCamera(facingMode = "user") {
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (localStream) {
+          localStream.getTracks().forEach(track => track.stop());
+        }
+
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facingMode },
+          audio: true
+        });
+
         localVideo.srcObject = localStream;
-        videoStatus.innerText = "Connecting...";
-        initPeer();
+        localVideo.style.transform = facingMode === "user" ? "scaleX(-1)" : "scaleX(1)";
+
+        // Maintain previous mute/hide states if toggled before flip
+        if (isAudioMuted) {
+          localStream.getAudioTracks().forEach(t => t.enabled = false);
+        }
+        if (isVideoStopped) {
+          localStream.getVideoTracks().forEach(t => t.enabled = false);
+          localVideo.style.opacity = "0.2";
+        }
+
+        // Agar call chalu hai aur camera flip hua, to live sender replace karein
+        if (currentCall && currentCall.peerConnection) {
+          const videoTrack = localStream.getVideoTracks()[0];
+          const senders = currentCall.peerConnection.getSenders();
+          const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+          if (videoSender) {
+            videoSender.replaceTrack(videoTrack);
+          }
+        }
+
+        if (!peer) {
+          videoStatus.innerText = "Connecting...";
+          initPeer();
+        }
       } catch (err) {
         videoStatus.innerText = "Camera Permission Required";
       }
@@ -438,7 +534,36 @@
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
 
-    // Call Cut Event
+    // --- In-Call Feature Buttons ---
+
+    // 1. Mic Mute / Unmute
+    micBtn.addEventListener("click", () => {
+      if (!localStream) return;
+      isAudioMuted = !isAudioMuted;
+      localStream.getAudioTracks().forEach(track => {
+        track.enabled = !isAudioMuted;
+      });
+      micBtn.classList.toggle("off", isAudioMuted);
+    });
+
+    // 2. Camera On / Off (Temporary Privacy)
+    camBtn.addEventListener("click", () => {
+      if (!localStream) return;
+      isVideoStopped = !isVideoStopped;
+      localStream.getVideoTracks().forEach(track => {
+        track.enabled = !isVideoStopped;
+      });
+      camBtn.classList.toggle("off", isVideoStopped);
+      localVideo.style.opacity = isVideoStopped ? "0.2" : "1";
+    });
+
+    // 3. Camera Flip (Front <-> Back)
+    flipBtn.addEventListener("click", () => {
+      currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
+      startCamera(currentFacingMode);
+    });
+
+    // 4. Call Cut Button
     callCutBtn.addEventListener("click", () => {
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
@@ -455,7 +580,7 @@
       resetSession();
     });
 
-    startCamera();
+    startCamera(currentFacingMode);
   </script>
 </body>
 </html>
