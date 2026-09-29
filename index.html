@@ -38,7 +38,7 @@
       overflow: hidden;
     }
 
-    /* Radar Pulse Animation */
+    /* Radar Pulse Animation (Pickup waiting) */
     .radar-box {
       position: absolute;
       display: flex;
@@ -47,7 +47,6 @@
       justify-content: center;
       z-index: 5;
       pointer-events: none;
-      transition: opacity 0.4s ease;
     }
 
     .radar-circle {
@@ -113,7 +112,7 @@
       50% { opacity: 1; }
     }
 
-    /* 1. Fullscreen Stranger Video */
+    /* 1. Fullscreen Stranger Video (Fixed Display) */
     #remoteVideo {
       position: absolute;
       top: 0;
@@ -121,16 +120,12 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      z-index: 2;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
+      background: #000;
+      z-index: 10;
+      display: none; /* Video aate hi show hoga */
     }
 
-    #remoteVideo.active {
-      opacity: 1;
-    }
-
-    /* 2. Floating User Video */
+    /* 2. Floating User Video Frame */
     #localVideo {
       position: absolute;
       top: 80px;
@@ -142,9 +137,8 @@
       background: #0f172a;
       border: 2px solid rgba(56, 189, 248, 0.7);
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.25);
-      z-index: 15;
+      z-index: 20;
       transform: scaleX(-1);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* Brand Header */
@@ -335,12 +329,6 @@
       flex-direction: column;
       align-items: center;
       gap: 16px;
-      animation: floatUp 0.5s ease-out;
-    }
-
-    @keyframes floatUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
     }
 
     .heart-icon {
@@ -390,18 +378,13 @@
       cursor: pointer;
       margin-top: 10px;
       box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
-      transition: transform 0.2s ease;
-    }
-
-    .btn-reconnect:active {
-      transform: scale(0.95);
     }
   </style>
 </head>
 <body>
 
   <div class="video-call-container" id="videoContainer">
-    <!-- Top Glass Header -->
+    <!-- Top Header -->
     <div class="brand-header">
       <div class="logo-box">
         <div class="logo-icon">
@@ -417,7 +400,7 @@
       </div>
     </div>
 
-    <!-- Radar Pulse: Text updated to "Waiting for call pickup" -->
+    <!-- Waiting Screen Animation -->
     <div class="radar-box" id="radarBox">
       <div class="radar-circle">
         <div class="radar-wave"></div>
@@ -436,7 +419,7 @@
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
 
-    <!-- Modern Floating Controls -->
+    <!-- Controls -->
     <div class="call-controls">
       <button class="control-btn" id="micBtn" title="Mute/Unmute Mic">
         <svg id="micIcon" viewBox="0 0 24 24">
@@ -585,8 +568,9 @@
     }
 
     function findMatch() {
-      radarBox.style.opacity = "1";
-      remoteVideo.classList.remove("active");
+      radarBox.style.display = "flex";
+      remoteVideo.style.display = "none";
+      remoteVideo.srcObject = null;
 
       queueRef.once('value', (snapshot) => {
         const queue = snapshot.val() || {};
@@ -612,9 +596,15 @@
       currentCall = call;
 
       call.on('stream', (stream) => {
+        // 1. Assign video stream
         remoteVideo.srcObject = stream;
-        remoteVideo.classList.add("active");
-        radarBox.style.opacity = "0";
+        // 2. Hide waiting radar, show remote video directly
+        radarBox.style.display = "none";
+        remoteVideo.style.display = "block";
+        
+        // 3. Force play for mobile browser autoplay policy
+        remoteVideo.play().catch(e => console.log("Autoplay caught:", e));
+        
         clearTimeout(disconnectGraceTimer);
       });
 
@@ -652,8 +642,8 @@
     function resetSession() {
       if (currentCall) currentCall.close();
       remoteVideo.srcObject = null;
-      remoteVideo.classList.remove("active");
-      radarBox.style.opacity = "1";
+      remoteVideo.style.display = "none";
+      radarBox.style.display = "flex";
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
 
