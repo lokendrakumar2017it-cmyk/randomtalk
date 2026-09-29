@@ -156,6 +156,13 @@
       backdrop-filter: blur(6px);
       border: 1px solid rgba(255, 255, 255, 0.15);
       z-index: 25;
+      transition: background 0.3s ease;
+    }
+
+    .video-status.warning {
+      background: rgba(234, 179, 8, 0.85);
+      color: #000;
+      font-weight: 600;
     }
 
     /* Bottom Control Bar */
@@ -200,12 +207,10 @@
       fill: #ffffff;
     }
 
-    /* Active / Mute state highlight */
     .control-btn.off {
       background: #ef4444;
     }
 
-    /* End Call Button */
     .btn-cut {
       background: #ef4444;
       width: 48px;
@@ -312,9 +317,7 @@
 </head>
 <body>
 
-  <!-- Main Video Container -->
   <div class="video-call-container" id="videoContainer">
-    <!-- Top Header -->
     <div class="brand-header">
       <div class="logo-box">
         <div class="logo-icon">
@@ -330,18 +333,15 @@
       </div>
     </div>
 
-    <!-- 1. Fullscreen Stranger Video -->
+    <!-- Videos -->
     <video id="remoteVideo" autoplay playsinline></video>
-
-    <!-- 2. Floating User Video -->
     <video id="localVideo" autoplay playsinline muted></video>
 
-    <!-- Status Badge -->
+    <!-- Network / Call Status Badge -->
     <div class="video-status" id="videoStatus">Connecting...</div>
 
-    <!-- Floating Action Controls (Mic, Cam, Flip, Call Cut) -->
+    <!-- Controls -->
     <div class="call-controls">
-      <!-- Mic Button -->
       <button class="control-btn" id="micBtn" title="Mute/Unmute Mic">
         <svg id="micIcon" viewBox="0 0 24 24">
           <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -349,21 +349,18 @@
         </svg>
       </button>
 
-      <!-- Camera On/Off Button -->
       <button class="control-btn" id="camBtn" title="Camera On/Off">
         <svg id="camIcon" viewBox="0 0 24 24">
           <path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z"/>
         </svg>
       </button>
 
-      <!-- Flip Camera Button -->
       <button class="control-btn" id="flipBtn" title="Switch Camera">
         <svg viewBox="0 0 24 24">
           <path d="M9.01 14H2v2h7.01v3L13 15l-3.99-4v3zm5.98-1v-3H22V8h-7.01V5L11 9l3.99 4z"/>
         </svg>
       </button>
 
-      <!-- Call Cut Button -->
       <button class="btn-cut" id="callCutBtn" title="End Call">
         <svg viewBox="0 0 24 24">
           <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/>
@@ -417,11 +414,20 @@
     let peer = null;
     let myPeerId = null;
     let currentCall = null;
+    let disconnectGraceTimer = null;
 
-    // Feature status trackers
     let isAudioMuted = false;
     let isVideoStopped = false;
-    let currentFacingMode = "user"; // "user" (front) or "environment" (back)
+    let currentFacingMode = "user";
+
+    function updateStatus(text, isWarning = false) {
+      videoStatus.innerText = text;
+      if (isWarning) {
+        videoStatus.classList.add("warning");
+      } else {
+        videoStatus.classList.remove("warning");
+      }
+    }
 
     async function startCamera(facingMode = "user") {
       try {
@@ -430,14 +436,13 @@
         }
 
         localStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: facingMode },
+          video: { facingMode: facingMode, width: { ideal: 640 }, height: { ideal: 480 } },
           audio: true
         });
 
         localVideo.srcObject = localStream;
         localVideo.style.transform = facingMode === "user" ? "scaleX(-1)" : "scaleX(1)";
 
-        // Maintain previous mute/hide states if toggled before flip
         if (isAudioMuted) {
           localStream.getAudioTracks().forEach(t => t.enabled = false);
         }
@@ -446,7 +451,6 @@
           localVideo.style.opacity = "0.2";
         }
 
-        // Agar call chalu hai aur camera flip hua, to live sender replace karein
         if (currentCall && currentCall.peerConnection) {
           const videoTrack = localStream.getVideoTracks()[0];
           const senders = currentCall.peerConnection.getSenders();
@@ -457,11 +461,11 @@
         }
 
         if (!peer) {
-          videoStatus.innerText = "Connecting...";
+          updateStatus("Connecting...");
           initPeer();
         }
       } catch (err) {
-        videoStatus.innerText = "Camera Permission Required";
+        updateStatus("Camera Permission Required", true);
       }
     }
 
@@ -470,8 +474,10 @@
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' }
-          ]
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+          ],
+          iceCandidatePoolSize: 10
         }
       });
 
@@ -484,10 +490,21 @@
         call.answer(localStream);
         setupCallHandlers(call);
       });
+
+      peer.on('disconnected', () => {
+        updateStatus("Reconnecting to server...", true);
+        if (!peer.destroyed) {
+          peer.reconnect();
+        }
+      });
+
+      peer.on('error', (err) => {
+        console.warn("Peer error:", err);
+      });
     }
 
     function findMatch() {
-      videoStatus.innerText = "Connecting...";
+      updateStatus("Connecting...");
 
       queueRef.once('value', (snapshot) => {
         const queue = snapshot.val() || {};
@@ -505,17 +522,47 @@
     }
 
     function connectToStranger(strangerId) {
-      videoStatus.innerText = "Connecting...";
+      updateStatus("Connecting...");
       const call = peer.call(strangerId, localStream);
       setupCallHandlers(call);
     }
 
     function setupCallHandlers(call) {
       currentCall = call;
+
       call.on('stream', (stream) => {
         remoteVideo.srcObject = stream;
-        videoStatus.innerText = "Connected";
+        updateStatus("Connected");
+        clearTimeout(disconnectGraceTimer);
       });
+
+      // WebRTC connection state monitoring (Low network / Disconnect recovery)
+      const pc = call.peerConnection;
+      if (pc) {
+        pc.oniceconnectionstatechange = () => {
+          const state = pc.iceConnectionState;
+          if (state === "disconnected") {
+            updateStatus("Poor Network: Reconnecting...", true);
+            // Trigger automatic ICE restart
+            if (pc.restartIce) {
+              pc.restartIce();
+            }
+            // 12 second grace period before dropping
+            clearTimeout(disconnectGraceTimer);
+            disconnectGraceTimer = setTimeout(() => {
+              if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
+                handleDisconnect();
+              }
+            }, 12000);
+          } else if (state === "connected" || state === "completed") {
+            clearTimeout(disconnectGraceTimer);
+            updateStatus("Connected");
+          } else if (state === "failed") {
+            updateStatus("Connection Lost", true);
+            handleDisconnect();
+          }
+        };
+      }
 
       call.on('close', () => {
         handleDisconnect();
@@ -523,6 +570,7 @@
     }
 
     function handleDisconnect() {
+      clearTimeout(disconnectGraceTimer);
       resetSession();
       findMatch();
     }
@@ -530,13 +578,26 @@
     function resetSession() {
       if (currentCall) currentCall.close();
       remoteVideo.srcObject = null;
-      videoStatus.innerText = "Connecting...";
+      updateStatus("Connecting...");
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
 
-    // --- In-Call Feature Buttons ---
+    // Phone Network Events (Data Drop / Reconnect)
+    window.addEventListener('offline', () => {
+      updateStatus("No Internet Connection", true);
+    });
 
-    // 1. Mic Mute / Unmute
+    window.addEventListener('online', () => {
+      updateStatus("Internet Restored. Resuming...", false);
+      if (peer && peer.disconnected) {
+        peer.reconnect();
+      }
+      if (currentCall && currentCall.peerConnection && currentCall.peerConnection.restartIce) {
+        currentCall.peerConnection.restartIce();
+      }
+    });
+
+    // Control buttons
     micBtn.addEventListener("click", () => {
       if (!localStream) return;
       isAudioMuted = !isAudioMuted;
@@ -546,7 +607,6 @@
       micBtn.classList.toggle("off", isAudioMuted);
     });
 
-    // 2. Camera On / Off (Temporary Privacy)
     camBtn.addEventListener("click", () => {
       if (!localStream) return;
       isVideoStopped = !isVideoStopped;
@@ -557,14 +617,13 @@
       localVideo.style.opacity = isVideoStopped ? "0.2" : "1";
     });
 
-    // 3. Camera Flip (Front <-> Back)
     flipBtn.addEventListener("click", () => {
       currentFacingMode = currentFacingMode === "user" ? "environment" : "user";
       startCamera(currentFacingMode);
     });
 
-    // 4. Call Cut Button
     callCutBtn.addEventListener("click", () => {
+      clearTimeout(disconnectGraceTimer);
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
