@@ -15,25 +15,103 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body, html {
       width: 100%;
       height: 100%;
-      background: #000;
+      background: #060913;
       overflow: hidden;
+      color: #fff;
     }
 
     .video-call-container {
       position: relative;
       width: 100vw;
       height: 100vh;
-      background: #0b0f19;
+      background: radial-gradient(circle at center, #0f172a 0%, #060913 100%);
       display: flex;
       justify-content: center;
       align-items: center;
       overflow: hidden;
+    }
+
+    /* Radar Pulse Animation (Searching Screen) */
+    .radar-box {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .radar-circle {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-wave {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      animation: ripple 2s cubic-bezier(0.1, 0.2, 0.3, 1) infinite;
+    }
+
+    .radar-wave:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .radar-wave:nth-child(3) {
+      animation-delay: 1.2s;
+    }
+
+    .radar-center-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.6);
+      z-index: 2;
+    }
+
+    .radar-center-icon svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
+
+    .radar-text {
+      margin-top: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      animation: textPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes ripple {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    @keyframes textPulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
     }
 
     /* 1. Fullscreen Stranger Video */
@@ -44,38 +122,48 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      background: #0b0f19;
-      z-index: 1;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
     }
 
-    /* 2. Floating User Video */
+    #remoteVideo.active {
+      opacity: 1;
+    }
+
+    /* 2. Floating User Video Frame */
     #localVideo {
       position: absolute;
-      top: 75px;
-      right: 16px;
-      width: 105px;
-      height: 145px;
-      border-radius: 14px;
+      top: 80px;
+      right: 18px;
+      width: 110px;
+      height: 155px;
+      border-radius: 18px;
       object-fit: cover;
-      background: #111827;
-      border: 2px solid rgba(56, 189, 248, 0.9);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      background: #0f172a;
+      border: 2px solid rgba(56, 189, 248, 0.7);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.25);
       z-index: 15;
       transform: scaleX(-1);
-      transition: opacity 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Top Brand Header */
+    /* Glassmorphism Brand Header */
     .brand-header {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      padding: 14px 18px;
+      top: 12px;
+      left: 14px;
+      right: 14px;
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), transparent);
+      background: rgba(15, 23, 42, 0.65);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       z-index: 25;
     }
 
@@ -86,33 +174,34 @@
     }
 
     .logo-icon {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #2563eb, #38bdf8);
-      border-radius: 8px;
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 3px 12px rgba(14, 165, 233, 0.45);
     }
 
     .logo-icon svg {
-      width: 18px;
-      height: 18px;
+      width: 19px;
+      height: 19px;
       fill: #ffffff;
     }
 
     .brand-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 800;
       color: #ffffff;
       letter-spacing: -0.3px;
       text-transform: capitalize;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
     }
 
     .brand-title span {
-      color: #38bdf8;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .live-badge {
@@ -121,19 +210,19 @@
       gap: 6px;
       font-size: 11px;
       font-weight: 700;
-      color: #4ade80;
-      background: rgba(74, 222, 128, 0.15);
-      padding: 4px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(74, 222, 128, 0.3);
-      backdrop-filter: blur(4px);
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.12);
+      padding: 5px 11px;
+      border-radius: 20px;
+      border: 1px solid rgba(52, 211, 153, 0.3);
     }
 
     .live-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: #4ade80;
+      background: #34d399;
+      box-shadow: 0 0 8px #34d399;
       animation: pulse 1.5s infinite;
     }
 
@@ -143,44 +232,55 @@
       100% { opacity: 1; transform: scale(1); }
     }
 
-    /* Connection Status */
+    /* Dynamic Status Pill */
     .video-status {
       position: absolute;
-      bottom: 110px;
+      bottom: 105px;
       left: 18px;
-      background: rgba(0, 0, 0, 0.65);
-      color: #ffffff;
+      background: rgba(15, 23, 42, 0.7);
+      color: #e2e8f0;
       font-size: 12px;
+      font-weight: 600;
       padding: 6px 14px;
       border-radius: 20px;
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
       z-index: 25;
-      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .video-status.connected {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.4);
     }
 
     .video-status.warning {
       background: rgba(234, 179, 8, 0.85);
-      color: #000;
-      font-weight: 600;
+      color: #0b0f19;
+      font-weight: 700;
     }
 
-    /* Bottom Control Bar */
+    /* Futuristic Floating Dock Controls */
     .call-controls {
       position: absolute;
-      bottom: 30px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
       display: flex;
       align-items: center;
       gap: 12px;
-      background: rgba(15, 23, 42, 0.75);
-      padding: 8px 14px;
-      border-radius: 40px;
-      backdrop-filter: blur(10px);
+      background: rgba(15, 23, 42, 0.7);
+      padding: 8px 16px;
+      border-radius: 50px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .control-btn {
@@ -188,17 +288,17 @@
       height: 44px;
       border-radius: 50%;
       border: none;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.1);
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .control-btn:active {
-      transform: scale(0.92);
+      transform: scale(0.9);
     }
 
     .control-btn svg {
@@ -209,10 +309,11 @@
 
     .control-btn.off {
       background: #ef4444;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
     }
 
     .btn-cut {
-      background: #ef4444;
+      background: linear-gradient(135deg, #f43f5e, #e11d48);
       width: 48px;
       height: 48px;
       border-radius: 50%;
@@ -222,12 +323,12 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+      box-shadow: 0 6px 18px rgba(225, 29, 72, 0.5);
       transition: transform 0.2s ease;
     }
 
     .btn-cut:active {
-      transform: scale(0.92);
+      transform: scale(0.9);
     }
 
     .btn-cut svg {
@@ -244,7 +345,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: #0b0f19;
+      background: #060913;
       display: none;
       flex-direction: column;
       justify-content: center;
@@ -255,27 +356,35 @@
     }
 
     .thankyou-card {
-      background: #1e293b;
-      padding: 36px 24px;
-      border-radius: 24px;
+      background: rgba(15, 23, 42, 0.85);
+      padding: 40px 24px;
+      border-radius: 28px;
       max-width: 360px;
       width: 100%;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.7);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 16px;
+      animation: floatUp 0.5s ease-out;
+    }
+
+    @keyframes floatUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .heart-icon {
-      width: 60px;
-      height: 60px;
-      background: rgba(56, 189, 248, 0.15);
+      width: 64px;
+      height: 64px;
+      background: rgba(56, 189, 248, 0.12);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
     }
 
     .heart-icon svg {
@@ -292,7 +401,9 @@
     }
 
     .thankyou-title span {
-      color: #38bdf8;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .thankyou-desc {
@@ -302,22 +413,28 @@
     }
 
     .btn-reconnect {
-      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      background: linear-gradient(135deg, #0ea5e9, #3b82f6);
       color: #ffffff;
       border: none;
-      padding: 12px 28px;
-      border-radius: 14px;
+      padding: 13px 32px;
+      border-radius: 16px;
       font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       margin-top: 10px;
-      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+      box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+      transition: transform 0.2s ease;
+    }
+
+    .btn-reconnect:active {
+      transform: scale(0.95);
     }
   </style>
 </head>
 <body>
 
   <div class="video-call-container" id="videoContainer">
+    <!-- Top Glass Header -->
     <div class="brand-header">
       <div class="logo-box">
         <div class="logo-icon">
@@ -333,14 +450,29 @@
       </div>
     </div>
 
-    <!-- Videos -->
+    <!-- Radar Searching Pulse -->
+    <div class="radar-box" id="radarBox">
+      <div class="radar-circle">
+        <div class="radar-wave"></div>
+        <div class="radar-wave"></div>
+        <div class="radar-wave"></div>
+        <div class="radar-center-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </div>
+      </div>
+      <div class="radar-text">Finding Stranger...</div>
+    </div>
+
+    <!-- Video Feeds -->
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
 
-    <!-- Network / Call Status Badge -->
+    <!-- Dynamic Status Badge -->
     <div class="video-status" id="videoStatus">Connecting...</div>
 
-    <!-- Controls -->
+    <!-- Modern Floating Controls -->
     <div class="call-controls">
       <button class="control-btn" id="micBtn" title="Mute/Unmute Mic">
         <svg id="micIcon" viewBox="0 0 24 24">
@@ -403,6 +535,7 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
     const videoStatus = document.getElementById("videoStatus");
+    const radarBox = document.getElementById("radarBox");
     const callCutBtn = document.getElementById("callCutBtn");
     const micBtn = document.getElementById("micBtn");
     const camBtn = document.getElementById("camBtn");
@@ -420,12 +553,13 @@
     let isVideoStopped = false;
     let currentFacingMode = "user";
 
-    function updateStatus(text, isWarning = false) {
+    function updateStatus(text, type = "normal") {
       videoStatus.innerText = text;
-      if (isWarning) {
+      videoStatus.className = "video-status";
+      if (type === "warning") {
         videoStatus.classList.add("warning");
-      } else {
-        videoStatus.classList.remove("warning");
+      } else if (type === "connected") {
+        videoStatus.classList.add("connected");
       }
     }
 
@@ -465,7 +599,7 @@
           initPeer();
         }
       } catch (err) {
-        updateStatus("Camera Permission Required", true);
+        updateStatus("Camera Permission Required", "warning");
       }
     }
 
@@ -492,19 +626,17 @@
       });
 
       peer.on('disconnected', () => {
-        updateStatus("Reconnecting to server...", true);
+        updateStatus("Reconnecting...", "warning");
         if (!peer.destroyed) {
           peer.reconnect();
         }
       });
-
-      peer.on('error', (err) => {
-        console.warn("Peer error:", err);
-      });
     }
 
     function findMatch() {
-      updateStatus("Connecting...");
+      updateStatus("Searching for partner...");
+      radarBox.style.opacity = "1";
+      remoteVideo.classList.remove("active");
 
       queueRef.once('value', (snapshot) => {
         const queue = snapshot.val() || {};
@@ -532,22 +664,19 @@
 
       call.on('stream', (stream) => {
         remoteVideo.srcObject = stream;
-        updateStatus("Connected");
+        remoteVideo.classList.add("active");
+        radarBox.style.opacity = "0";
+        updateStatus("Connected", "connected");
         clearTimeout(disconnectGraceTimer);
       });
 
-      // WebRTC connection state monitoring (Low network / Disconnect recovery)
       const pc = call.peerConnection;
       if (pc) {
         pc.oniceconnectionstatechange = () => {
           const state = pc.iceConnectionState;
           if (state === "disconnected") {
-            updateStatus("Poor Network: Reconnecting...", true);
-            // Trigger automatic ICE restart
-            if (pc.restartIce) {
-              pc.restartIce();
-            }
-            // 12 second grace period before dropping
+            updateStatus("Poor Network: Reconnecting...", "warning");
+            if (pc.restartIce) pc.restartIce();
             clearTimeout(disconnectGraceTimer);
             disconnectGraceTimer = setTimeout(() => {
               if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
@@ -556,9 +685,9 @@
             }, 12000);
           } else if (state === "connected" || state === "completed") {
             clearTimeout(disconnectGraceTimer);
-            updateStatus("Connected");
+            updateStatus("Connected", "connected");
           } else if (state === "failed") {
-            updateStatus("Connection Lost", true);
+            updateStatus("Connection Lost", "warning");
             handleDisconnect();
           }
         };
@@ -578,26 +707,24 @@
     function resetSession() {
       if (currentCall) currentCall.close();
       remoteVideo.srcObject = null;
-      updateStatus("Connecting...");
+      remoteVideo.classList.remove("active");
+      radarBox.style.opacity = "1";
+      updateStatus("Searching for partner...");
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
 
-    // Phone Network Events (Data Drop / Reconnect)
     window.addEventListener('offline', () => {
-      updateStatus("No Internet Connection", true);
+      updateStatus("No Internet Connection", "warning");
     });
 
     window.addEventListener('online', () => {
-      updateStatus("Internet Restored. Resuming...", false);
-      if (peer && peer.disconnected) {
-        peer.reconnect();
-      }
+      updateStatus("Internet Restored. Resuming...", "connected");
+      if (peer && peer.disconnected) peer.reconnect();
       if (currentCall && currentCall.peerConnection && currentCall.peerConnection.restartIce) {
         currentCall.peerConnection.restartIce();
       }
     });
 
-    // Control buttons
     micBtn.addEventListener("click", () => {
       if (!localStream) return;
       isAudioMuted = !isAudioMuted;
@@ -628,9 +755,7 @@
         localStream.getTracks().forEach(track => track.stop());
       }
       resetSession();
-      if (peer) {
-        peer.destroy();
-      }
+      if (peer) peer.destroy();
       videoContainer.style.display = "none";
       thankyouScreen.style.display = "flex";
     });
