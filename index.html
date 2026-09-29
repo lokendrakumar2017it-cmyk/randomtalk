@@ -38,7 +38,7 @@
       overflow: hidden;
     }
 
-    /* Radar Pulse Animation (Pickup waiting) */
+    /* Radar Pulse Animation */
     .radar-box {
       position: absolute;
       display: flex;
@@ -112,7 +112,7 @@
       50% { opacity: 1; }
     }
 
-    /* 1. Fullscreen Stranger Video (Fixed Display) */
+    /* 1. Fullscreen Stranger Video */
     #remoteVideo {
       position: absolute;
       top: 0;
@@ -121,8 +121,7 @@
       height: 100%;
       object-fit: cover;
       background: #000;
-      z-index: 10;
-      display: none; /* Video aate hi show hoga */
+      z-index: 2;
     }
 
     /* 2. Floating User Video Frame */
@@ -241,7 +240,7 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
     }
 
     .control-btn {
@@ -255,7 +254,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
     }
 
     .control-btn:active {
@@ -400,7 +399,7 @@
       </div>
     </div>
 
-    <!-- Waiting Screen Animation -->
+    <!-- Waiting Animation Screen -->
     <div class="radar-box" id="radarBox">
       <div class="radar-circle">
         <div class="radar-wave"></div>
@@ -415,7 +414,7 @@
       <div class="radar-text">Waiting for call pickup</div>
     </div>
 
-    <!-- Video Feeds -->
+    <!-- Videos -->
     <video id="remoteVideo" autoplay playsinline></video>
     <video id="localVideo" autoplay playsinline muted></video>
 
@@ -493,12 +492,12 @@
     let peer = null;
     let myPeerId = null;
     let currentCall = null;
-    let disconnectGraceTimer = null;
 
     let isAudioMuted = false;
     let isVideoStopped = false;
     let currentFacingMode = "user";
 
+    // Camera Start First
     async function startCamera(facingMode = "user") {
       try {
         if (localStream) {
@@ -530,11 +529,12 @@
           }
         }
 
+        // Camera on hote hi Peer shuru karein
         if (!peer) {
           initPeer();
         }
       } catch (err) {
-        console.error("Camera permission denied", err);
+        alert("Please allow Camera & Microphone permission in browser.");
       }
     }
 
@@ -543,10 +543,8 @@
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
-          ],
-          iceCandidatePoolSize: 10
+            { urls: 'stun:stun1.l.google.com:19302' }
+          ]
         }
       });
 
@@ -555,21 +553,20 @@
         findMatch();
       });
 
+      // Answering Incoming Call
       peer.on('call', (call) => {
+        if (!localStream) return;
         call.answer(localStream);
         setupCallHandlers(call);
       });
 
       peer.on('disconnected', () => {
-        if (!peer.destroyed) {
-          peer.reconnect();
-        }
+        if (!peer.destroyed) peer.reconnect();
       });
     }
 
     function findMatch() {
       radarBox.style.display = "flex";
-      remoteVideo.style.display = "none";
       remoteVideo.srcObject = null;
 
       queueRef.once('value', (snapshot) => {
@@ -588,6 +585,7 @@
     }
 
     function connectToStranger(strangerId) {
+      if (!localStream) return;
       const call = peer.call(strangerId, localStream);
       setupCallHandlers(call);
     }
@@ -595,46 +593,29 @@
     function setupCallHandlers(call) {
       currentCall = call;
 
+      // Handle stream event
       call.on('stream', (stream) => {
-        // 1. Assign video stream
         remoteVideo.srcObject = stream;
-        // 2. Hide waiting radar, show remote video directly
         radarBox.style.display = "none";
-        remoteVideo.style.display = "block";
         
-        // 3. Force play for mobile browser autoplay policy
-        remoteVideo.play().catch(e => console.log("Autoplay caught:", e));
-        
-        clearTimeout(disconnectGraceTimer);
+        // Mobile Chrome Autoplay Fallback
+        remoteVideo.play().catch(() => {
+          document.body.addEventListener('click', () => {
+            remoteVideo.play();
+          }, { once: true });
+        });
       });
 
-      const pc = call.peerConnection;
-      if (pc) {
-        pc.oniceconnectionstatechange = () => {
-          const state = pc.iceConnectionState;
-          if (state === "disconnected") {
-            if (pc.restartIce) pc.restartIce();
-            clearTimeout(disconnectGraceTimer);
-            disconnectGraceTimer = setTimeout(() => {
-              if (pc.iceConnectionState === "disconnected" || pc.iceConnectionState === "failed") {
-                handleDisconnect();
-              }
-            }, 12000);
-          } else if (state === "connected" || state === "completed") {
-            clearTimeout(disconnectGraceTimer);
-          } else if (state === "failed") {
-            handleDisconnect();
-          }
-        };
-      }
-
       call.on('close', () => {
+        handleDisconnect();
+      });
+
+      call.on('error', () => {
         handleDisconnect();
       });
     }
 
     function handleDisconnect() {
-      clearTimeout(disconnectGraceTimer);
       resetSession();
       findMatch();
     }
@@ -642,21 +623,9 @@
     function resetSession() {
       if (currentCall) currentCall.close();
       remoteVideo.srcObject = null;
-      remoteVideo.style.display = "none";
       radarBox.style.display = "flex";
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
-
-    window.addEventListener('offline', () => {
-      console.warn("Internet offline");
-    });
-
-    window.addEventListener('online', () => {
-      if (peer && peer.disconnected) peer.reconnect();
-      if (currentCall && currentCall.peerConnection && currentCall.peerConnection.restartIce) {
-        currentCall.peerConnection.restartIce();
-      }
-    });
 
     micBtn.addEventListener("click", () => {
       if (!localStream) return;
@@ -683,7 +652,6 @@
     });
 
     callCutBtn.addEventListener("click", () => {
-      clearTimeout(disconnectGraceTimer);
       if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
       }
@@ -697,6 +665,7 @@
       resetSession();
     });
 
+    // Start with Camera
     startCamera(currentFacingMode);
   </script>
 </body>
