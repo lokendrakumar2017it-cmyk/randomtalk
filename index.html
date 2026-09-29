@@ -36,7 +36,7 @@
       overflow: hidden;
     }
 
-    /* 1. User Fullscreen Video (Aapka Apna Video) */
+    /* 1. User Fullscreen Video */
     #localVideo {
       position: absolute;
       top: 0;
@@ -45,10 +45,10 @@
       height: 100%;
       object-fit: cover;
       z-index: 1;
-      transform: scaleX(-1); /* Mirror view for front camera */
+      transform: scaleX(-1);
     }
 
-    /* 2. Stranger Video Box (Thoda bada floating column) */
+    /* 2. Stranger Video Box */
     #remoteVideo {
       position: absolute;
       top: 75px;
@@ -63,7 +63,7 @@
       z-index: 15;
     }
 
-    /* Top Brand Header (Overlay) */
+    /* Top Brand Header */
     .brand-header {
       position: absolute;
       top: 0;
@@ -144,7 +144,7 @@
     /* Status Badge on Video */
     .video-status {
       position: absolute;
-      bottom: 95px;
+      bottom: 24px;
       left: 18px;
       background: rgba(0, 0, 0, 0.65);
       color: #ffffff;
@@ -154,49 +154,6 @@
       backdrop-filter: blur(6px);
       border: 1px solid rgba(255, 255, 255, 0.15);
       z-index: 25;
-    }
-
-    /* Floating Action Controls */
-    .floating-controls {
-      position: absolute;
-      bottom: 24px;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 14px;
-      padding: 0 20px;
-      z-index: 25;
-    }
-
-    .btn-action {
-      flex: 1;
-      max-width: 180px;
-      padding: 13px;
-      border-radius: 14px;
-      font-weight: 700;
-      font-size: 14px;
-      border: none;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-      transition: transform 0.1s;
-    }
-
-    .btn-action:active {
-      transform: scale(0.96);
-    }
-
-    .btn-next {
-      background: rgba(15, 23, 42, 0.85);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .btn-report {
-      background: rgba(239, 68, 68, 0.85);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
     }
   </style>
 </head>
@@ -222,17 +179,11 @@
     <!-- 1. Fullscreen User Video -->
     <video id="localVideo" autoplay playsinline muted></video>
 
-    <!-- 2. Enlarged Stranger Column Frame -->
+    <!-- 2. Stranger Video Box -->
     <video id="remoteVideo" autoplay playsinline></video>
 
     <!-- Connection Status Badge -->
     <div class="video-status" id="videoStatus">Connecting...</div>
-
-    <!-- Bottom Controls -->
-    <div class="floating-controls">
-      <button class="btn-action btn-next" id="nextBtn">Find / Next</button>
-      <button class="btn-action btn-report">Report</button>
-    </div>
   </div>
 
   <script>
@@ -255,7 +206,6 @@
     const localVideo = document.getElementById("localVideo");
     const remoteVideo = document.getElementById("remoteVideo");
     const videoStatus = document.getElementById("videoStatus");
-    const nextBtn = document.getElementById("nextBtn");
 
     let localStream = null;
     let peer = null;
@@ -341,11 +291,6 @@
       videoStatus.innerText = "Connecting...";
       if (myPeerId) queueRef.child(myPeerId).remove();
     }
-
-    nextBtn.addEventListener("click", () => {
-      resetSession();
-      findMatch();
-    });
 
     window.addEventListener("beforeunload", () => {
       resetSession();
